@@ -58,3 +58,24 @@ def calculation(request, year, data):
             return HttpResponse(dump, content_type='application/json')
 
         return HttpResponse("File is not Open")
+     
+     
+def drug_calculation(request, year, data):
+
+    with open('static/csv/DrugReview.csv', mode='r') as file:
+        drug_file = csv.DictReader(file)
+        di = {data: {}}
+        for field in drug_file:
+            ye = field['date'].split('-')[0]
+            if ye == year and data == field['drugName']:
+                if field['condition'] not in di[data]:
+                    di[data][field['condition']] =  {}
+                    di[data][field['condition']][field['date']] = field['review']
+                else:
+                    di[data][field['condition']][field['date']] = field['review']
+            elif data == field['drugName'] and year not in {'2014', '2015', '2016', '2017', '2018', '2019'}:
+                di[data][field['condition']] =  {}
+                di[data][field['condition']] = 'No Reviews Found'
+
+        load = json.dumps(di)
+        return HttpResponse(load, content_type='application/json')    
